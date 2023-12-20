@@ -1,75 +1,114 @@
-#include<iostream>
-#include<vector>
-#include<algorithm>
-using namespace std;
+#include <iostream>
+#include <vector>
 
 class NGUOI {
 public:
-    virtual void Nhap() = 0;
-    virtual void Xuat() = 0;
+    std::string HoTen;
+    int Tuoi;
+
+    NGUOI() : HoTen(""), Tuoi(0) {}
+    NGUOI(std::string hoTen, int tuoi) : HoTen(hoTen), Tuoi(tuoi) {}
+
+    virtual void Nhap() {
+        std::cout << "Nhap ho ten: ";
+        std::cin.ignore();
+        std::getline(std::cin, HoTen);
+
+        std::cout << "Nhap tuoi: ";
+        std::cin >> Tuoi;
+    }
+
+    virtual void Xuat() const {
+        std::cout << "Ho ten: " << HoTen << ", Tuoi: " << Tuoi;
+    }
 };
 
 class BAC_SI : public NGUOI {
 private:
-    string MaBS;
-    float SoNgayLamViec;
-    float TienCongNgay;
+    std::string MaBS;
+    double SoNgayLamViec;
+    double TienCongNgay;
+
 public:
-    BAC_SI() : MaBS(""), SoNgayLamViec(0), TienCongNgay(0) {}
-    BAC_SI(string maBS, float soNgayLamViec, float tienCongNgay) : MaBS(maBS), SoNgayLamViec(soNgayLamViec), TienCongNgay(tienCongNgay) {}
+    BAC_SI() : NGUOI(), MaBS(""), SoNgayLamViec(0), TienCongNgay(0) {}
+    BAC_SI(std::string hoTen, int tuoi, std::string maBS, double soNgayLamViec, double tienCongNgay)
+        : NGUOI(hoTen, tuoi), MaBS(maBS), SoNgayLamViec(soNgayLamViec), TienCongNgay(tienCongNgay) {}
+
     void Nhap() override {
-        cout << "Nhap MaBS: ";
-        cin >> MaBS;
-        cout << "Nhap SoNgayLamViec: ";
-        cin >> SoNgayLamViec;
-        cout << "Nhap TienCongNgay: ";
-        cin >> TienCongNgay;
+        NGUOI::Nhap();
+
+        std::cout << "Nhap Ma bac si: ";
+        std::cin.ignore();
+        std::getline(std::cin, MaBS);
+
+        std::cout << "Nhap so ngay lam viec: ";
+        std::cin >> SoNgayLamViec;
+
+        std::cout << "Nhap tien cong ngay: ";
+        std::cin >> TienCongNgay;
     }
-    void Xuat() override {
-        cout << "MaBS: " << MaBS << ", SoNgayLamViec: " << SoNgayLamViec << ", TienCongNgay: " << TienCongNgay << endl;
+
+    void Xuat() const override {
+        NGUOI::Xuat();
+        std::cout << ", Ma BS: " << MaBS << ", So ngay lam viec: " << SoNgayLamViec
+                  << ", Tien cong thang: " << SoNgayLamViec * TienCongNgay;
     }
-    float TienCongThang() {
-        return SoNgayLamViec * TienCongNgay;
-    }
-    float getSoNgayLamViec() {
+
+    double GetSoNgayLamViec() const {
         return SoNgayLamViec;
     }
 };
 
 int main() {
-    vector<NGUOI*> DanhSach;
     int n;
-    cout << "Nhap so luong nguoi: ";
-    cin >> n;
-    for (int i = 0; i < n; i++) {
-        int loai;
-        cout << "Nhap loai (1 - BENH_NHAN, 2 - BAC_SI): ";
-        cin >> loai;
-        if (loai == 1) {
-            // Tạo đối tượng BENH_NHAN và thêm vào danh sách
-        } else if (loai == 2) {
-            BAC_SI* bacSi = new BAC_SI();
-            bacSi->Nhap();
-            DanhSach.push_back(bacSi);
-        }
+    std::cout << "Nhap so luong nguoi: ";
+    std::cin >> n;
+
+    if (n <= 0) {
+        std::cerr << "So luong nguoi khong hop le." << std::endl;
+        return 1;
     }
-    // Hiển thị danh sách NGUOI
-    for (auto nguoi : DanhSach) {
+
+    std::vector<NGUOI*> danhSachNguoi;
+
+    for (int i = 0; i < n; ++i) {
+        std::cout << "Nhap thong tin nguoi thu " << i + 1 << ":\n";
+        BAC_SI* bacSi = new BAC_SI();
+        bacSi->Nhap();
+        danhSachNguoi.push_back(bacSi);
+    }
+
+    // Hiển thị danh sách NGUOI nhập vào
+    std::cout << "\nDanh sach nguoi:\n";
+    for (const auto& nguoi : danhSachNguoi) {
         nguoi->Xuat();
+        std::cout << std::endl;
     }
-    // Hiển thị thông tin các BAC_SI có số ngày làm việc nhiều nhất
-    float maxNgay = 0;
-    for (auto nguoi : DanhSach) {
-        BAC_SI* bacSi = dynamic_cast<BAC_SI*>(nguoi);
-        if (bacSi && bacSi->getSoNgayLamViec() > maxNgay) {
-            maxNgay = bacSi->getSoNgayLamViec();
+
+    // Tìm BAC_SI có số ngày làm việc nhiều nhất
+    BAC_SI* bacSiMaxNgay = nullptr;
+    double maxNgay = 0;
+
+    for (const auto& nguoi : danhSachNguoi) {
+        const BAC_SI* bacSi = dynamic_cast<const BAC_SI*>(nguoi);
+        if (bacSi && bacSi->GetSoNgayLamViec() > maxNgay) {
+            maxNgay = bacSi->GetSoNgayLamViec();
+            bacSiMaxNgay = const_cast<BAC_SI*>(bacSi);
         }
     }
-    for (auto nguoi : DanhSach) {
-        BAC_SI* bacSi = dynamic_cast<BAC_SI*>(nguoi);
-        if (bacSi && bacSi->getSoNgayLamViec() == maxNgay) {
-            bacSi->Xuat();
-        }
+
+    if (bacSiMaxNgay) {
+        std::cout << "\nBAC_SI co so ngay lam viec nhieu nhat:\n";
+        bacSiMaxNgay->Xuat();
+        std::cout << std::endl;
+    } else {
+        std::cout << "\nKhong co BAC_SI trong danh sach.\n";
     }
+
+    // Giải phóng bộ nhớ
+    for (auto& nguoi : danhSachNguoi) {
+        delete nguoi;
+    }
+
     return 0;
 }
